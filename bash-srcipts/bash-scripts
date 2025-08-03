@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# Full setup script for Contact Management System
+# Generates directory structure + .NET backend projects
+
+set -e
+
+echo "🚀 Setting up Contact Management System..."
+
+# Create main project directory
+PROJECT_NAME="CMS"
+mkdir -p "$PROJECT_NAME"
+cd "$PROJECT_NAME"
+
+echo "📁 Creating folder structure..."
+
+# Mobile app structure
+mkdir -p mobile-app/lib/core/{config,constants,utils,network}
+mkdir -p mobile-app/lib/features/contacts/{data/{datasources,models,repositories},domain/{entities,repositories,usecases},presentation/{pages,widgets,providers}}
+mkdir -p mobile-app/lib/shared_widgets
+mkdir -p mobile-app/android
+mkdir -p mobile-app/ios
+mkdir -p mobile-app/web
+
+# Shared project
+mkdir -p shared/Contracts/{Contact,Auth}
+mkdir -p shared/Common
+
+# Backend service layout
+mkdir -p backend/services/auth-service/keys
+mkdir -p backend/services/contact-service/keys
+mkdir -p backend/api-gateway
+mkdir -p backend/tests/{ContactService.Tests,AuthService.Tests}
+mkdir -p docker/sql
+
+# Create .NET solution
+cd backend
+dotnet new sln -n CMS
+SOLUTION_FILE="CMS.sln"
+
+# Create shared class library
+cd ..
+dotnet new classlib -n Shared -o shared
+dotnet sln backend/$SOLUTION_FILE add shared/Shared.csproj
+
+cd backend
+
+# Define services to scaffold
+services=("auth-service" "contact-service")
+
+for service in "${services[@]}"; do
+  baseName=$(echo "$service" | sed -r 's/(^|-)([a-z])/\U\2/g' | sed 's/-//g') # e.g., auth-service → AuthService
+  serviceRoot="services/$service/src"
+
+  apiDir="$serviceRoot/API"
+  appDir="$serviceRoot/Application"
+  domainDir="$serviceRoot/Domain"
+  infraDir="$serviceRoot/Infrastructure"
+
+  echo "🔧 Scaffolding $baseName..."
+
+  mkdir -p "$apiDir" "$appDir" "$domainDir" "$infraDir"
+
+  dotnet new webapi -n "$baseName.API" -o "$apiDir"
+  dotnet new classlib -n "$baseName.Application" -o "$appDir"
+  dotnet new classlib -n "$baseName.Domain" -o "$domainDir"
+  dotnet new classlib -n "$baseName.Infrastructure" -o "$infraDir"
+
+  # Force TargetFramework to net8.0
+  for projDir in "$apiDir" "$appDir" "$domainDir" "$infraDir"; do
+    csprojFile=$(find "$projDir" -maxdepth 1 -name "*.csproj")
+    sed -i 's|<TargetFramework>.*</TargetFramework>|<TargetFramework>net8.0</TargetFramework>|' "$csprojFile"
+  done
+
+  # Add references
+  dotnet add "$apiDir/$baseName.API.csproj" reference "$appDir/$baseName.Application.csproj"
+  dotnet add "$appDir/$baseName.Application.csproj" reference "$domainDir/$baseName.Domain.csproj"
+  dotnet add "$infraDir/$baseName.Infrastructure.csproj" reference "$appDir/$baseName.Application.csproj" "$domainDir/$baseName.Domain.csproj"
+
+  # Add all to solution
+  for projDir in "$apiDir" "$appDir" "$domainDir" "$infraDir"; do
+    csprojFile=$(find "$projDir" -maxdepth 1 -name "*.csproj")
+    dotnet sln "$SOLUTION_FILE" add "$csprojFile"
+  done
+
+  # Add basic packages
+  dotnet add "$apiDir/$baseName.API.csproj" package AutoMapper.Extensions.Microsoft.DependencyInjection --version 12.*
+  dotnet add "$apiDir/$baseName.API.csproj" package Microsoft.AspNetCore.Authentication.JwtBearer --version 8.*
+  dotnet add "$apiDir/$baseName.API.csproj" package Swashbuckle.AspNetCore --version 6.*
+
+  dotnet add "$infraDir/$baseName.Infrastructure.csproj" package Microsoft.EntityFrameworkCore.SqlServer --version 8.*
+  dotnet add "$infraDir/$baseName.Infrastructure.csproj" package Microsoft.EntityFrameworkCore.Tools --version 8.*
+
+  echo "✅ $baseName generated."
+  echo "----------------------------------------"
+done
+
+echo "🎯 Setup complete! You're ready to build."
+
