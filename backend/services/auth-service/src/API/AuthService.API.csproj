@@ -8,13 +8,19 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.*" />
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.*" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.18" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.*" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.*" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.*" />
+    <!-- Add this to resolve the NU1605 downgrade issue -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Application\AuthService.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\AuthService.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\..\..\shared\Shared.csproj" />
   </ItemGroup>
 
 </Project>
