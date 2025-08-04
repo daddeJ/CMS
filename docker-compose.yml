@@ -1,0 +1,33 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: cms-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+      - ./docker/sql:/docker-entrypoint-initdb.d
+    networks:
+      - cms-network
+
+  db-init:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      - sqlserver
+    entrypoint: ["/bin/bash", "/init-db.sh"]
+    volumes:
+      - ./init-db.sh:/init-db.sh
+      - ./docker/sql:/docker/sql
+    networks:
+      - cms-network
+
+volumes:
+  sqlserver_data:
+
+networks:
+  cms-network:
+    driver: bridge

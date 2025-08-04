@@ -31,6 +31,11 @@ public record RefreshTokenRequest(
     string RefreshToken
 );
 
+public record ChangePasswordRequest(
+    string CurrentPassword,
+    string NewPassword
+);
+
 public record UpdateProfileRequest(
     string FirstName,
     string LastName
