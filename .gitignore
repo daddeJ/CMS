@@ -9,7 +9,6 @@ keys/
 *.userosscache
 *.sln.docstates
 *.code-workspace
-*.env
 # OS-specific files
 
 # Optional: Rider / VSCode
