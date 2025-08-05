@@ -1,6 +1,7 @@
 using AuthService.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Contracts.Auth;
+using AuthService.API.Extensions;
 
 namespace AuthService.API.Controllers;
 
@@ -16,23 +17,23 @@ public class ProfileController : ControllerBase
     }
 
     [HttpGet("{userId:guid}")]
-    public async Task<IActionResult> GetProfile(Guid userId)
+    public async Task<ActionResult<UserDto>> GetProfile(Guid userId)
     {
         var result = await _profileService.GetProfileAsync(userId);
-        return result.IsSuccess ? Ok(result.Value) : NotFound(result.Error);
+        return this.FromResult(result);
     }
 
     [HttpPut("{userId:guid}")]
-    public async Task<IActionResult> UpdateProfile(Guid userId, UpdateProfileRequest request)
+    public async Task<ActionResult<UserDto>> UpdateProfile(Guid userId, UpdateProfileRequest request)
     {
         var result = await _profileService.UpdateProfileAsync(userId, request);
-        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+        return this.FromResult(result);
     }
 
     [HttpPut("{userId:guid}/change-password")]
     public async Task<IActionResult> ChangePassword(Guid userId, ChangePasswordRequest request)
     {
         var result = await _profileService.ChangePasswordAsync(userId, request);
-        return result.IsSuccess ? Ok() : BadRequest(result.Error);
+        return this.FromResult(result);
     }
 }
