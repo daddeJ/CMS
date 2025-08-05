@@ -4,6 +4,7 @@ using ContactService.Application.Interfaces;
 using Shared.Common;
 using Shared.Contracts.Contact;
 using ContactService.API.Extensions;
+using System.Security.Claims;
 
 namespace ContactService.API.Controllers;
 
@@ -39,7 +40,7 @@ public class ContactsController : ControllerBase
                 );
                 return Ok(response);
             },
-            error => this.FromResult(Result.Failure(error)) 
+            error => this.FromResult(Result.Failure(error))
         );
     }
 
@@ -51,7 +52,20 @@ public class ContactsController : ControllerBase
             return Unauthorized("Invalid user token.");
 
         var result = await _contactService.GetContactByIdAsync(contactId, userId.Value);
-        return this.FromResult(result);
+
+        return result.Match<IActionResult>(
+            contact =>
+            {
+                var response = new ContactListResponse(
+                    Contacts: new[] { contact },
+                    TotalCount: 1,
+                    Page: 1,
+                    PageSize: 1
+                );
+                return Ok(response);
+            },
+            error => this.FromResult(Result<ContactDto>.Failure(error))
+        );
     }
 
     [HttpPost]
@@ -64,7 +78,16 @@ public class ContactsController : ControllerBase
         var result = await _contactService.CreateContactAsync(request, userId.Value);
 
         return result.Match<IActionResult>(
-            value => CreatedAtAction(nameof(GetContactById), new { contactId = value.ContactId }, value),
+            contact =>
+            {
+                var response = new ContactListResponse(
+                    Contacts: new[] { contact },
+                    TotalCount: 1,
+                    Page: 1,
+                    PageSize: 1
+                );
+                return CreatedAtAction(nameof(GetContactById), new { contactId = contact.ContactId }, response);
+            },
             error => this.FromResult(Result<ContactDto>.Failure(error))
         );
     }
@@ -77,7 +100,20 @@ public class ContactsController : ControllerBase
             return Unauthorized("Invalid user token.");
 
         var result = await _contactService.UpdateContactAsync(contactId, request, userId.Value);
-        return this.FromResult(result);
+
+        return result.Match<IActionResult>(
+            contact =>
+            {
+                var response = new ContactListResponse(
+                    Contacts: new[] { contact },
+                    TotalCount: 1,
+                    Page: 1,
+                    PageSize: 1
+                );
+                return Ok(response);
+            },
+            error => this.FromResult(Result<ContactDto>.Failure(error))
+        );
     }
 
     [HttpDelete("{contactId:guid}")]
@@ -93,7 +129,7 @@ public class ContactsController : ControllerBase
 
     private Guid? GetUserId()
     {
-        var userIdClaim = User.FindFirst("sub")?.Value;
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
     }
 }

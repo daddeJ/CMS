@@ -19,7 +19,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 DotNetEnv.Env.Load("../../../../.env");
 
-// ✅ Load values from env
 var dbConnection = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") 
     ?? throw new InvalidOperationException("DB_CONNECTION_STRING not set");
 
@@ -39,7 +38,6 @@ builder.Services.Configure<JwtOptions>(options =>
     options.Audience = jwtAudience;
 });
 
-// Services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -69,11 +67,9 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// ✅ Configure DB context from env
 builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseSqlServer(dbConnection));
 
-// ✅ Configure JWT
 var key = Encoding.ASCII.GetBytes(jwtSecret);
 builder.Services.AddAuthentication(options =>
 {
@@ -97,17 +93,14 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// AutoMapper
 builder.Services.AddAutoMapper(typeof(AuthProfile).Assembly);
 
-// Services + DI
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthenticationService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
-// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -133,7 +126,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Auto-create DB (optional)
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
