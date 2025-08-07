@@ -16,13 +16,17 @@ public class LocalFileStorageService : IFileStorageService
     {
         ValidateImageFile(file);
 
-        var uploadsDir = Path.Combine(_env.WebRootPath, BaseUploadPath, contactId.ToString());
+        var basePath = !string.IsNullOrEmpty(_env.WebRootPath) 
+            ? _env.WebRootPath 
+            : Path.Combine(_env.ContentRootPath, "wwwroot");
+
+        var uploadsDir = Path.Combine(basePath, BaseUploadPath, contactId.ToString());
         Directory.CreateDirectory(uploadsDir);
 
         var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
         var filePath = Path.Combine(uploadsDir, fileName);
 
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        await using (var stream = new FileStream(filePath, FileMode.Create))
         {
             await file.CopyToAsync(stream);
         }

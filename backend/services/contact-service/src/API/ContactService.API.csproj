@@ -22,6 +22,7 @@
     <Reference Include="Shared">
       <HintPath>../shared-dll/Shared.dll</HintPath>
     </Reference>
+    <Content Include="wwwroot/**/*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
