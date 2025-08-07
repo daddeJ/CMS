@@ -19,7 +19,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\ContactService.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\ContactService.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\..\..\shared\Shared.csproj" />
+    <Reference Include="Shared">
+      <HintPath>../shared-dll/Shared.dll</HintPath>
+    </Reference>
+    <Content Include="wwwroot/**/*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

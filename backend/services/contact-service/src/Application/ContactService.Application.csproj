@@ -2,13 +2,17 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Domain\ContactService.Domain.csproj" />
-    <ProjectReference Include="..\..\..\..\..\shared\Shared.csproj" />
+    <Reference Include="Shared">
+      <HintPath>../shared-dll/Shared.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="12.*" />
     <PackageReference Include="FluentValidation" Version="11.*" />
     <PackageReference Include="MediatR" Version="12.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
   </ItemGroup>
 
   <PropertyGroup>

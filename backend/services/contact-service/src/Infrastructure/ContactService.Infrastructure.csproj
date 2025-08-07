@@ -3,6 +3,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\ContactService.Application.csproj" />
     <ProjectReference Include="..\Domain\ContactService.Domain.csproj" />
+    <Reference Include="Shared">
+      <HintPath>../shared-dll/Shared.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
