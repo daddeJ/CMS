@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
+
 import '../../../../domain/entities/contact.dart';
+import '../../../core/config/api_config.dart';
 import '../cubit/contact_cubit.dart';
 
 class UpdateContactPage extends StatefulWidget {
@@ -17,6 +22,8 @@ class _UpdateContactPageState extends State<UpdateContactPage> {
   late final TextEditingController _phoneController;
   late final TextEditingController _emailController;
   final _formKey = GlobalKey<FormState>();
+  final ImagePicker _picker = ImagePicker();
+  File? _selectedImage;
   bool _isUpdating = false;
 
   @override
@@ -35,6 +42,15 @@ class _UpdateContactPageState extends State<UpdateContactPage> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
   Future<void> _updateContact() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -47,7 +63,9 @@ class _UpdateContactPageState extends State<UpdateContactPage> {
         email: _emailController.text.trim(),
       );
 
-      await context.read<ContactCubit>().updateExistingContact(updatedContact);
+      await context
+          .read<ContactCubit>()
+          .updateExistingContact(contact:  updatedContact, imageFile: _selectedImage);
 
       if (mounted) {
         Navigator.pop(context, true); // Return success flag
@@ -70,6 +88,8 @@ class _UpdateContactPageState extends State<UpdateContactPage> {
 
   @override
   Widget build(BuildContext context) {
+    final existingImageUrl = '${ApiConfig.apiBaseUrl}/contact-image/${widget.contact.profilePicture}';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Update Contact'),
@@ -88,6 +108,25 @@ class _UpdateContactPageState extends State<UpdateContactPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
+                if (_selectedImage != null)
+                  Image.file(
+                    _selectedImage!,
+                    height: 150,
+                    fit: BoxFit.cover,
+                  )
+                else if (existingImageUrl != null && existingImageUrl.isNotEmpty)
+                  Image.network(
+                    existingImageUrl,
+                    height: 150,
+                    fit: BoxFit.cover,
+                  ),
+                const SizedBox(height: 8),
+                ElevatedButton.icon(
+                  onPressed: _isUpdating ? null : _pickImage,
+                  icon: const Icon(Icons.photo),
+                  label: const Text("Update Image"),
+                ),
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: _nameController,
                   decoration: const InputDecoration(
@@ -95,12 +134,8 @@ class _UpdateContactPageState extends State<UpdateContactPage> {
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.person),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a name';
-                    }
-                    return null;
-                  },
+                  validator: (value) =>
+                  value == null || value.isEmpty ? 'Please enter a name' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(

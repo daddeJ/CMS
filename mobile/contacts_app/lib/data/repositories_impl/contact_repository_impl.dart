@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:contacts_app/core/resources/data_state.dart';
 
 import '../../domain/repositories/contact_repository.dart';
@@ -17,13 +18,13 @@ class ContactRepositoryImpl implements ContactRepository {
   }
 
   @override
-  Future<DataState<ContactListResponseModel>> addContact(Contact contact) async {
-    return await remoteDataSource.addContact(contact);
+  Future<DataState<ContactListResponseModel>> addContact({required Contact contact, File? imageFile}) async {
+    return await remoteDataSource.addContact(contact: contact, imageFile: imageFile);
   }
 
   @override
-  Future<DataState<ContactListResponseModel>> updateContact(Contact contact) async {
-    return await remoteDataSource.updateContact(contact);
+  Future<DataState<ContactListResponseModel>> updateContact({required Contact contact, File? imageFile}) async {
+    return await remoteDataSource.updateContact(contact: contact, imageFile: imageFile);
   }
 
   @override
