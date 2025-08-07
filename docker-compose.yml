@@ -24,23 +24,6 @@ services:
       - ./docker/sql:/docker/sql
     networks:
       - cms-network
-  auth-service:
-    build:
-      context: ./backend/services/auth-service
-      dockerfile: Dockerfile
-    container_name: auth-service
-    ports:
-      - "5001:5001"
-    environment:
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_ISSUER=${JWT_ISSUER}
-      - JWT_AUDIENCE=${JWT_AUDIENCE}
-      - DB_CONNECTION_STRING=${DB_CONNECTION_STRING}
-      - ASPNETCORE_ENVIRONMENT=Development
-    networks:
-      - cms-network
-    depends_on:
-      - sqlserver
 
   contact-service:
     build:
@@ -49,6 +32,27 @@ services:
     container_name: contact-service
     ports:
       - "5002:5002"
+    volumes:
+      - ./wwwroot:/app/wwwroot
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ISSUER=${JWT_ISSUER}
+      - JWT_AUDIENCE=${JWT_AUDIENCE}
+      - DB_CONNECTION_STRING=${DB_CONNECTION_STRING}
+      - ASPNETCORE_ENVIRONMENT=Development
+      - WEBROOT_PATH=/app/wwwroot
+    networks:
+      - cms-network
+    depends_on:
+      - sqlserver
+
+  auth-service:
+    build:
+      context: ./backend/services/auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "5001:5001"
     environment:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_ISSUER=${JWT_ISSUER}
