@@ -10,4 +10,5 @@ public interface IContactService
     Task<Result<ContactDto>> CreateContactAsync(CreateContactRequest request, Guid userId);
     Task<Result<ContactDto>> UpdateContactAsync(Guid contactId, UpdateContactRequest request, Guid userId);
     Task<Result> DeleteContactAsync(Guid contactId, Guid userId);
+    Task<Result> UpdateContactProfilePictureAsync(Guid contactId, string imageUrl, Guid userId);
 }
