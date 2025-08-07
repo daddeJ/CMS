@@ -11,4 +11,9 @@ public class Contact
     public string? ProfilePicture { get; set; }
     public DateTime DateCreated { get; set; } = DateTime.UtcNow;
     public DateTime? DateUpdated { get; set; }
+    public void UpdateProfilePicture(string relativePath)
+    {
+        ProfilePicture = relativePath;
+        DateUpdated = DateTime.UtcNow;
+    }
 }

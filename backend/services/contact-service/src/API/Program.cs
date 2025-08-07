@@ -10,6 +10,7 @@ using ContactService.Application.Interfaces;
 using ContactService.Application.Services;
 using ContactService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using ContactService.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -85,6 +86,8 @@ builder.Services.AddDbContext<ContactDbContext>(options =>
 builder.Services.AddAutoMapper(typeof(ContactProfile).Assembly);
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
 builder.Services.AddScoped<IContactService, ContactApplicationService>();
+builder.Services.AddScoped<IContactImageService, ContactImageService>();
+builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
 builder.Services.AddCors(options =>
 {
@@ -94,6 +97,10 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
+});
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = long.MaxValue;
 });
 
 var app = builder.Build();
@@ -107,6 +114,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
 app.MapControllers();
 
 app.Run();

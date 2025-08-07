@@ -88,4 +88,25 @@ public class ContactApplicationService : IContactService
 
         return Result<ContactDto>.Success(dto);
     }
+
+    public async Task<Result> UpdateContactProfilePictureAsync(Guid contactId, string imageUrl, Guid userId)
+{
+    var contact = await _repository.GetByContactIdAsync(contactId, userId);
+    if (contact is null)
+        return Result.Failure(Error.NotFound("Contact.NotFound", "Contact not found"));
+
+    // Validate the image URL (optional)
+    if (string.IsNullOrWhiteSpace(imageUrl))
+        return Result.Failure(Error.Validation("Contact.InvalidImageUrl", "Image URL cannot be empty"));
+
+    // Update only the profile picture
+    contact.ProfilePicture = imageUrl;
+    contact.DateUpdated = DateTime.UtcNow;
+
+    var updated = await _repository.UpdateAsync(contact);
+    if (updated == null)
+        return Result.Failure(Error.Failure("Contact.UpdateFailed", "Failed to update contact profile picture"));
+
+    return Result.Success();
+}
 }
