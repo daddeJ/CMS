@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
+
 import '../../../../domain/entities/contact.dart';
 import '../cubit/contact_cubit.dart';
 
@@ -15,6 +19,9 @@ class _AddContactPageState extends State<AddContactPage> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
+
+  final ImagePicker _picker = ImagePicker();
+  File? _selectedImage;
   bool _isSaving = false;
 
   @override
@@ -23,6 +30,15 @@ class _AddContactPageState extends State<AddContactPage> {
     _phoneController.dispose();
     _emailController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
   }
 
   Future<void> _saveContact() async {
@@ -41,7 +57,10 @@ class _AddContactPageState extends State<AddContactPage> {
         dateCreated: DateTime.now(),
       );
 
-      await context.read<ContactCubit>().addNewContact(newContact);
+      await context.read<ContactCubit>().addNewContact(
+        contact:  newContact,
+        imageFile: _selectedImage
+      );
 
       if (mounted) {
         Navigator.pop(context, true); // Return success flag
@@ -80,6 +99,24 @@ class _AddContactPageState extends State<AddContactPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
+                // Image preview
+                if (_selectedImage != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Image.file(
+                      _selectedImage!,
+                      height: 150,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+
+                ElevatedButton.icon(
+                  onPressed: _isSaving ? null : _pickImage,
+                  icon: const Icon(Icons.photo),
+                  label: const Text('Upload Image'),
+                ),
+                const SizedBox(height: 16),
+
                 TextFormField(
                   controller: _nameController,
                   decoration: const InputDecoration(

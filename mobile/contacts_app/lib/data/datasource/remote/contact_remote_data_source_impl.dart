@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:contacts_app/core/resources/data_state.dart';
 import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -74,7 +76,7 @@ class ContactRemoteDataSourceImpl implements ContactRemoteDataSource {
   }
 
   @override
-  Future<DataState<ContactListResponseModel>> addContact(Contact contact) async {
+  Future<DataState<ContactListResponseModel>> addContact({required Contact contact, File? imageFile}) async {
     try {
       final token = await authLocalDataSource.getToken();
       final contactModel = ContactModel.fromEntity(contact);
@@ -109,6 +111,28 @@ class ContactRemoteDataSourceImpl implements ContactRemoteDataSource {
     ''');
 
       final model = ContactListResponseModel.fromJson(response.data);
+      final createContact = model.contacts.first;
+      final contactId = createContact.contactId;
+
+      // Upload image if provided
+      if (imageFile != null) {
+        final formData = FormData.fromMap({
+          'File': await MultipartFile.fromFile(imageFile.path),
+        });
+
+        final uploadResponse = await dio.post(
+          '/contact-api/api/Contacts/$contactId/images',
+          data: formData,
+          options: Options(
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'multipart/form-data',
+            },
+          ),
+        );
+
+        AppLogger().debug('Image upload response: ${uploadResponse.data}');
+      }
       return DataSuccess<ContactListResponseModel>(model);
     } on DioException catch (e) {
       AppLogger().error('''
@@ -133,7 +157,7 @@ class ContactRemoteDataSourceImpl implements ContactRemoteDataSource {
   }
 
   @override
-  Future<DataState<ContactListResponseModel>> updateContact(Contact contact) async {
+  Future<DataState<ContactListResponseModel>> updateContact({required Contact contact, File? imageFile}) async {
     try {
       final token = await authLocalDataSource.getToken();
       final contactModel = ContactModel.fromEntity(contact);
@@ -147,6 +171,29 @@ class ContactRemoteDataSourceImpl implements ContactRemoteDataSource {
         ),
       );
       final model = ContactListResponseModel.fromJson(response.data);
+      final createContact = model.contacts.first;
+      final contactId = createContact.contactId;
+
+      // Upload image if provided
+      if (imageFile != null) {
+        final formData = FormData.fromMap({
+          'File': await MultipartFile.fromFile(imageFile.path),
+        });
+
+        final uploadResponse = await dio.post(
+          '/contact-api/api/Contacts/$contactId/images',
+          data: formData,
+          options: Options(
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'multipart/form-data',
+            },
+          ),
+        );
+
+        AppLogger().debug('Image upload response: ${uploadResponse.data}');
+      }
+      return DataSuccess<ContactListResponseModel>(model);
       return DataSuccess<ContactListResponseModel>(model);
     } on DioException catch (e) {
       AppLogger().error('Failed to update contact', error: e);

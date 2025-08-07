@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../../../domain/entities/contact.dart';
@@ -37,10 +38,10 @@ class ContactCubit extends Cubit<ContactState> {
     }
   }
 
-  Future<void> addNewContact(Contact contact) async {
+  Future<void> addNewContact({required Contact contact, File? imageFile}) async {
     emit(ContactLoading());
     try {
-      final response = await addContact(contact);
+      final response = await addContact(contact: contact, imageFile: imageFile);
       if (response is DataSuccess) {
         // Force a complete refresh from server
         await fetchContacts();
@@ -69,10 +70,10 @@ class ContactCubit extends Cubit<ContactState> {
   }
 
   // Similar optimizations for update/delete
-  Future<void> updateExistingContact(Contact contact) async {
+  Future<void> updateExistingContact({required Contact contact, File? imageFile}) async {
     emit(ContactLoading());
     try {
-      final response = await updateContact(contact);
+      final response = await updateContact(contact: contact, imageFile: imageFile);
       if (response is DataSuccess) {
         if (state is ContactLoaded) {
           final contacts = (state as ContactLoaded).contacts.map((c) =>
