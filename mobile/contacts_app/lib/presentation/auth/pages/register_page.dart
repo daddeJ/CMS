@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../routes/app_router.dart';
 import '../cubit/auth_cubit.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/loading_indicator.dart';
@@ -42,14 +41,29 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       appBar: const CustomAppBar(title: 'Register'),
       body: BlocConsumer<AuthCubit, AuthState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
             );
           }
-          if (state is AuthAuthenticated) {
-            Navigator.pushReplacementNamed(context, AppRouter.contactList);
+          if (state is AuthRegisterSuccess) {
+            await showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Registration Successful'),
+                content: const Text('Your account has been created. Please log in.'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+
+            // Pop back to login page
+            Navigator.pop(context);
           }
         },
         builder: (context, state) {

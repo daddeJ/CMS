@@ -43,7 +43,6 @@ Future<void> init() async {
 }
 
 Future<void> _initCore() async {
-  // External packages
   final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => sharedPreferences);
 
@@ -64,12 +63,10 @@ Future<void> _initCore() async {
       error: true,
     )));
 
-  // Core utilities
   sl.registerLazySingleton(() => AppLogger());
 }
 
 Future<void> _initAuth() async {
-  // Data sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
         () => AuthRemoteDataSourceImpl(dio: sl()),
   );
@@ -78,7 +75,6 @@ Future<void> _initAuth() async {
         () => AuthLocalDataSourceImpl(sharedPreferences: sl()),
   );
 
-  // Repository
   sl.registerLazySingleton<AuthRepository>(
         () => AuthRepositoryImpl(
       remoteDataSource: sl(),
@@ -86,12 +82,10 @@ Future<void> _initAuth() async {
     ),
   );
 
-  // Use cases
   sl.registerLazySingleton(() => LoginUser(sl()));
   sl.registerLazySingleton(() => RegisterUser(sl()));
   sl.registerLazySingleton(() => GetCachedUser(sl()));
 
-  // Cubit
   sl.registerFactory(() => AuthCubit(
     loginUser: sl(),
     registerUser: sl(),
@@ -100,23 +94,19 @@ Future<void> _initAuth() async {
 }
 
 Future<void> _initContacts() async {
-  // Data sources
   sl.registerLazySingleton<ContactRemoteDataSource>(
         () => ContactRemoteDataSourceImpl(dio: sl(), authLocalDataSource: sl()),
   );
 
-  // Repository
   sl.registerLazySingleton<ContactRepository>(
         () => ContactRepositoryImpl(remoteDataSource: sl()),
   );
 
-  // Use cases
   sl.registerLazySingleton(() => FetchContactList(sl()));
   sl.registerLazySingleton(() => AddContact(sl()));
   sl.registerLazySingleton(() => UpdateContact(sl()));
   sl.registerLazySingleton(() => DeleteItemContact(sl()));
 
-  // Cubit
   sl.registerFactory(() => ContactCubit(
     fetchContactList: sl(),
     addContact: sl(),

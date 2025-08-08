@@ -12,10 +12,8 @@ import 'routes/app_router.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize dependency injection
   await di.init();
 
-  // Ensure Material icons are loaded
   LicenseRegistry.addLicense(() async* {
     final license = await rootBundle.loadString('fonts/MaterialIcons-Regular.ttf');
     yield LicenseEntryWithLineBreaks(['Material Icons'], license);
@@ -53,7 +51,7 @@ class MyApp extends StatelessWidget {
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: const [
-          Locale('en', 'US'), // English
+          Locale('en', 'US'),
         ],
         onGenerateRoute: AppRouter.generateRoute,
         initialRoute: AppRouter.splash,
