@@ -48,17 +48,22 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<void> register(String email, String password, String firstname, String lastname) async {
+  Future<void> register(
+      String email,
+      String password,
+      String firstname,
+      String lastname,
+      ) async {
     emit(AuthLoading());
     try {
-      final registerResponse = await registerUser(
-          email: email,
-          password: password,
-          firstName: firstname,
-          lastName: lastname
+      await registerUser(
+        email: email,
+        password: password,
+        firstName: firstname,
+        lastName: lastname,
       );
-      final userModel = UserModel.fromEntity(registerResponse.data!.user);
-      emit(AuthAuthenticated(userModel));
+
+      emit(const AuthRegisterSuccess());
     } on ServerException catch (e) {
       emit(AuthError(e.message));
     } catch (_) {
