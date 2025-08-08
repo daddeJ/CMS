@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-The **Contacts App** is a cross-platform mobile application designed to manage and store contact information efficiently. It follows a **Clean Architecture** approach, separating the application into layers for maintainability, scalability. The app supports both **online API integration** and **offline storage** for a seamless user experience.
+The **Contacts App** is a cross-platform mobile application designed to manage and store contact information efficiently. It follows a **Clean Architecture** approach, separating the application into layers for maintainability, scalability. The app supports **online API integration** for a seamless user experience.
 
 ### Key Features
 * Add, edit, and delete contacts
@@ -119,7 +119,6 @@ The **Contacts App** is a cross-platform mobile application designed to manage a
 
 ### Configuration
 - **API Configuration**: Set custom backend server IP address
-- **Offline Support**: Local storage fallback when API is unavailable
 - **Image Handling**: Camera capture or gallery selection for profile pictures
 
 ## Configuration
