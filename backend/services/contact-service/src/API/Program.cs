@@ -11,24 +11,18 @@ using ContactService.Application.Services;
 using ContactService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using ContactService.API.Services;
+using API.Helper;
+using Amazon.S3;
+using API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 DotNetEnv.Env.Load("../../../../.env");
 
-var dbConnection = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") 
-    ?? throw new InvalidOperationException("DB_CONNECTION_STRING not set");
+var environment = builder.Environment.EnvironmentName;
+var secrets = await SecretsHelper.GetSecretsForEnvironmentAsync(environment);
 
-var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") 
-    ?? throw new InvalidOperationException("JWT_SECRET not set");
-
-var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") 
-    ?? throw new InvalidOperationException("JWT_ISSUER not set");
-
-var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") 
-    ?? throw new InvalidOperationException("JWT_AUDIENCE not set");
-
-var key = Encoding.ASCII.GetBytes(jwtSecret);
+var key = Encoding.ASCII.GetBytes(secrets.JwtSecret);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -44,9 +38,9 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
         ValidateIssuer = true,
-        ValidIssuer = jwtIssuer,
+        ValidIssuer = secrets.JwtIssuer,
         ValidateAudience = true,
-        ValidAudience = jwtAudience,
+        ValidAudience = secrets.JwtAudience,
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
@@ -81,13 +75,28 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddDbContext<ContactDbContext>(options =>
-    options.UseSqlServer(dbConnection));
+    options.UseSqlServer(secrets.DBConnectionString));
 
 builder.Services.AddAutoMapper(typeof(ContactProfile).Assembly);
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
 builder.Services.AddScoped<IContactService, ContactApplicationService>();
 builder.Services.AddScoped<IContactImageService, ContactImageService>();
-builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+
+if (environment.Equals("LOCAL", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+}
+else
+{
+    builder.Services.AddAWSService<IAmazonS3>();
+    builder.Services.AddScoped<IFileStorageService>(sp =>
+    {
+        var s3Client = sp.GetRequiredService<IAmazonS3>();
+        var bucketName = Environment.GetEnvironmentVariable("S3_BUCKET")
+                         ?? throw new InvalidOperationException("S3_BUCKET not set");
+        return new RemoteFileStorageService(s3Client, bucketName);
+    });
+}
 
 builder.Services.AddCors(options =>
 {

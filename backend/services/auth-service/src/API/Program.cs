@@ -14,28 +14,22 @@ using AuthService.Domain.Entities;
 using DotNetEnv;
 using AuthService.Infrastructure.Options;
 using AuthService.Application.Profiles;
+using API.Helper;
 
 var builder = WebApplication.CreateBuilder(args);
 
 DotNetEnv.Env.Load("../../../../.env");
 
-var dbConnection = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") 
-    ?? throw new InvalidOperationException("DB_CONNECTION_STRING not set");
+var environment = builder.Environment.EnvironmentName;
+var secrets = await SecretsHelper.GetSecretsForEnvironmentAsync(environment);
 
-var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") 
-    ?? throw new InvalidOperationException("JWT_SECRET not set");
-
-var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") 
-    ?? throw new InvalidOperationException("JWT_ISSUER not set");
-
-var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") 
-    ?? throw new InvalidOperationException("JWT_AUDIENCE not set");
+var key = Encoding.ASCII.GetBytes(secrets.JwtSecret);
 
 builder.Services.Configure<JwtOptions>(options =>
 {
-    options.Secret = jwtSecret;
-    options.Issuer = jwtIssuer;
-    options.Audience = jwtAudience;
+    options.Secret = secrets.JwtSecret;
+    options.Issuer = secrets.JwtIssuer;
+    options.Audience = secrets.JwtAudience;
 });
 
 builder.Services.AddControllers();
@@ -68,9 +62,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddDbContext<AuthDbContext>(options =>
-    options.UseSqlServer(dbConnection));
+    options.UseSqlServer(secrets.DBConnectionString));
 
-var key = Encoding.ASCII.GetBytes(jwtSecret);
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -85,9 +78,9 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
         ValidateIssuer = true,
-        ValidIssuer = jwtIssuer,
+        ValidIssuer = secrets.JwtIssuer,
         ValidateAudience = true,
-        ValidAudience = jwtAudience,
+        ValidAudience = secrets.JwtAudience,
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
